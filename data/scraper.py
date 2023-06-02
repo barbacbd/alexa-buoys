@@ -109,7 +109,7 @@ if __name__ == '__main__':
         prog='scraper',
         description='helper file for CI and base project purposes',
     )
-    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match'], default='match')
+    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match', 'diff'], default='match')
     parser.add_argument('-d', '--distance', type=float, default=50.0, help='max distance between city and buoy for validation')
     unit_names = [x.name for x in DistanceUnits]
     parser.add_argument('-u', '--units', type=str, default='MILES', help='distance unit', choices=unit_names)
@@ -119,5 +119,16 @@ if __name__ == '__main__':
         dist = args.distance
         units = [x for x in DistanceUnits if x.name == args.units][0]
         create_city_buoy_lookup(dist, units)
-    else:
+    elif args.function == 'buoy':
         save_buoy_information()
+    elif args.function == 'diff':
+        with open("buoy_locations.json", "r") as jsonfile:
+            original_buoy_data = loads(jsonfile.read())
+
+        original_set = set(original_buoy_data)
+        new_set = set(get_buoy_information())
+
+        diff_set = new_set ^ original_set
+
+        message = "No Updates" if len(diff_set) == 0 else "Changes Detected"
+        print(dumps({"diff": len(diff_set), "message": message}))
