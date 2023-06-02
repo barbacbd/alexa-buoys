@@ -7,11 +7,14 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 from json import dumps, loads
+from os import getcwd
+from os.path  import join, realpath, dirname
 from nautical.io import get_buoy_sources
 from nautical.location import Point
 from nautical.noaa import SourceType
 from nautical.units import DistanceUnits
 
+__location__ = realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 class LocalPoint(Point):
     def __init__(self, json_dict):
@@ -49,7 +52,7 @@ def save_buoy_information():
     buoy_locations = {}
     for key, value in data.items():
         buoy_locations[key] = value.location.to_json()
-    with open("buoy_locations.json", "w+") as jsonfile:
+    with open(join(__location__, "buoy_locations.json"), "w+") as jsonfile:
         jsonfile.write(dumps(buoy_locations, indent=2))
 
 
@@ -68,7 +71,7 @@ def create_city_buoy_lookup(dist, units):
     }
     csvdata = None
     cities = {}
-    with open('uscities.csv') as csvfile:
+    with open(join(__location__, 'uscities.csv')) as csvfile:
         csvdata = list(csv.reader(csvfile))
 
     if csvdata is not None:
@@ -122,7 +125,7 @@ if __name__ == '__main__':
     elif args.function == 'buoy':
         save_buoy_information()
     elif args.function == 'diff':
-        with open("buoy_locations.json", "r") as jsonfile:
+        with open(join(__location__, "buoy_locations.json"), "r") as jsonfile:
             original_buoy_data = loads(jsonfile.read())
 
         original_set = set(original_buoy_data)
