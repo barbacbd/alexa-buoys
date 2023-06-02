@@ -14,7 +14,7 @@ from nautical.location import Point
 from nautical.noaa import SourceType
 from nautical.units import DistanceUnits
 
-__location__ = realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+__location__ = realpath(join(getcwd(), dirname(__file__)))
 
 class LocalPoint(Point):
     def __init__(self, json_dict):
