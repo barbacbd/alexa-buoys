@@ -38,7 +38,6 @@ jobs:
       - name: Get the number of changes
         run: |
           output=$(python data/scraper.py -f diff)
-          output=$(python3.9 scraper.py -f diff)
           diff=$(jq '.diff' <<<"$output")
           message=$(jq '.message' <<<"$output")
           echo "NUM_DIFF=${diff}" >> $GITHUB_ENV
