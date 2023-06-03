@@ -51,7 +51,7 @@ jobs:
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
           filename: test.json
           label: Buoy Status
-          message: ${{ steps.get-num-changes.DISPLAY_MESSAGE }}
-          valColorRange: 100 - (10 * ${{ steps.get-num-changes.NUM_DIFF }}
+          message: ${{ steps.get-num-changes.outputs.DISPLAY_MESSAGE }}
+          valColorRange: 100 - (10 * ${{ steps.get-num-changes.outputs.NUM_DIFF }}
           maxColorRange: 100
           minColorRange: 0
