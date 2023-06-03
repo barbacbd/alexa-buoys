@@ -41,6 +41,7 @@ jobs:
           output=$(python data/scraper.py -f diff)
           diff=$(jq '.diff' <<<"$output")
           message=$(jq '.message' <<<"$output")
+          echo "diff = ${diff}, message = ${message}"
           echo "NUM_DIFF=${diff}" >> $GITHUB_OUTPUT
           echo "DISPLAY_MESSAGE=${message}" >> GITHUB_OUTPUT
 
