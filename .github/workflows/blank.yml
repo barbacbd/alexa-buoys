@@ -36,13 +36,21 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Get the number of changes
-        id: get-num-changes
+        id: get-output-text
         run: |
           output=$(python data/scraper.py -f diff)
-          diff=$(jq '.diff' <<<"$output")
-          message=$(jq '.message' <<<"$output")
-          echo "diff = ${diff}, message = ${message}"
+          echo "FULL_MESSAGE=${output}" >> GITHUB_OUTPUT
+
+      - name: Get number of changes
+        id: get-num-changes
+        run: |
+          diff=$(jq '.diff' <<<"${{ steps.get-output-text.outputs.FULL_MESSAGE }}")
           echo "NUM_DIFF=${diff}" >> $GITHUB_OUTPUT
+
+      - name: Get display message
+        id: get-display-message
+        run: |
+          message=$(jq '.message' <<<"${{ steps.get-output-text.outputs.FULL_MESSAGE }}")
           echo "DISPLAY_MESSAGE=${message}" >> GITHUB_OUTPUT
 
       - name: Create Awesome Badge
@@ -52,7 +60,7 @@ jobs:
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
           filename: DynamicBuoyBadgeData.json
           label: Buoy Status
-          message: "${{ steps.get-num-changes.outputs.DISPLAY_MESSAGE }}"
+          message: "${{ steps.get-display-message.outputs.DISPLAY_MESSAGE }}"
           valColorRange: ${{ steps.get-num-changes.outputs.NUM_DIFF }}
           maxColorRange: 100
           minColorRange: 0
