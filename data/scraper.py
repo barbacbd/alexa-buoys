@@ -131,7 +131,10 @@ if __name__ == '__main__':
         original_set = set(original_buoy_data)
         new_set = set(get_buoy_information())
 
-        diff_set = new_set ^ original_set
+        diff_set_1 = new_set ^ original_set
+        diff_set_2 = original_set ^ new_set
 
-        message = "No Updates" if len(diff_set) == 0 else "Changes Detected"
-        print(dumps({"diff": len(diff_set), "message": message}))
+        total_diff = len(diff_set_1) + len(diff_set_2)
+
+        message = "No Updates" if total_diff == 0 else "Changes Detected"
+        print(dumps({"diff": int(100 - (total_diff * 10)), "message": message}))
