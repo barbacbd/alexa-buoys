@@ -36,12 +36,13 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Get the number of changes
+        id: get-num-changes
         run: |
           output=$(python data/scraper.py -f diff)
           diff=$(jq '.diff' <<<"$output")
           message=$(jq '.message' <<<"$output")
-          echo "NUM_DIFF=${diff}" >> $GITHUB_ENV
-          echo "DISPLAY_MESSAGE=${message}" >> GITHUB_ENV
+          echo "NUM_DIFF=${diff}" >> $GITHUB_OUTPUT
+          echo "DISPLAY_MESSAGE=${message}" >> GITHUB_OUTPUT
 
       - name: Create Awesome Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
@@ -50,7 +51,7 @@ jobs:
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
           filename: test.json
           label: Buoy Status
-          message: ${{ env.DISPLAY_MESSAGE }}
-          valColorRange: 100 - (10 * ${{ env.NUM_DIFF }}
+          message: ${{ steps.get-num-changes.DISPLAY_MESSAGE }}
+          valColorRange: 100 - (10 * ${{ steps.get-num-changes.NUM_DIFF }}
           maxColorRange: 100
           minColorRange: 0
