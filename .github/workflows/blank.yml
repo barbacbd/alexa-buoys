@@ -56,7 +56,7 @@ jobs:
         with:
           auth: ${{ secrets.Custom_Badge }}
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
-          color: "blue"
+          color: blue
           filename: DynamicBuoyBadgeData.json
           label: Buoy Updates
           message: ${{ needs.scraper.outputs.diff }}
