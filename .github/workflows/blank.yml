@@ -36,7 +36,7 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Get the number of changes
-        id: get-output-text
+        id: scraper
         run: |
           output=$(python data/scraper.py -f diff)
           echo "output = ${output}"
@@ -54,7 +54,7 @@ jobs:
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
           filename: DynamicBuoyBadgeData.json
           label: Buoy Status
-          message: "${{ steps.get-output-text.outputs.DISPLAY_MESSAGE }}"
-          valColorRange: ${{ steps.get-output-text.outouts.NUM_DIFF }}
+          message: ${{ steps.scraper.outputs.DISPLAY_MESSAGE }}
+          valColorRange: ${{ steps.scraper.outouts.NUM_DIFF }}
           maxColorRange: 100
           minColorRange: 0
