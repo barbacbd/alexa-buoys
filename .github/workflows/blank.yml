@@ -45,16 +45,14 @@ jobs:
           message=$(jq '.message' <<<"${output}")
           echo "message = ${message}"
           echo "NUM_DIFF=${diff}" >> GITHUB_OUTPUT
-          echo "DISPLAY_MESSAGE=${message}" >> GITHUB_OUTPUT
 
       - name: Create Awesome Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.Custom_Badge }}
           gistID: 7e85f87f1f599809fd45d9ef75e9ef42
+          color: "blue"
           filename: DynamicBuoyBadgeData.json
-          label: Buoy Status
-          message: ${{ steps.scraper.outputs.DISPLAY_MESSAGE }}
-          valColorRange: ${{ steps.scraper.outouts.NUM_DIFF }}
-          maxColorRange: 100
-          minColorRange: 0
+          label: Buoy Updates
+          message: ${{ steps.scraper.outputs.NUM_DIFF }}
+
