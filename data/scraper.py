@@ -137,4 +137,4 @@ if __name__ == '__main__':
         total_diff = len(diff_set_1) + len(diff_set_2)
 
         message = "No Updates" if total_diff == 0 else "Changes Detected"
-        print(dumps({"diff": int(100 - (total_diff * 10)), "message": message}))
+        print(dumps({"diff": total_diff, "message": message}))
