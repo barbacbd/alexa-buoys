@@ -39,8 +39,11 @@ jobs:
         id: get-output-text
         run: |
           output=$(python data/scraper.py -f diff)
+          echo "output = ${output}"
           diff=$(jq '.diff' <<<"${output}")
+          echo "diff = ${diff}"
           message=$(jq '.message' <<<"${output}")
+          echo "message = ${message}"
           echo "NUM_DIFF=${diff}" >> GITHUB_OUTPUT
           echo "DISPLAY_MESSAGE=${message}" >> GITHUB_OUTPUT
 
