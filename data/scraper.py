@@ -45,6 +45,43 @@ def get_buoy_information():
 
     return source_data
 
+
+def create_location_lookup():
+    '''Save the location data to a quick lookup'''
+    required_rows = {
+        "city_ascii": None,
+        "state_name": None,
+        "id": None
+    }
+    csvdata = None
+    cities = {}
+    id_to_location = {}
+    location_to_id = {}
+
+    with open(join(__location__, 'uscities.csv')) as csvfile:
+        csvdata = list(csv.reader(csvfile))
+
+    if csvdata is not None:
+
+        for i, col in enumerate(csvdata[0]):
+            if col in required_rows:
+                required_rows[col] = i
+
+        for row in csvdata[1:]:
+            location_name = f"{row[required_rows['city_ascii']].lower()}, {row[required_rows['state_name']].lower()}"
+
+            id_to_location[row[required_rows["id"]]] = location_name
+            location_to_id[location_name] = row[required_rows["id"]]
+
+    # Think about making this two different files for reading speeds
+
+    with open(join(__location__, 'location_ids.json'), "w+") as jsonfile:
+        jsonfile.write(dumps(location_to_id, indent=2))
+
+    with open(join(__location__, 'id_locations.json'), "w+") as jsonfile:
+        jsonfile.write(dumps(id_to_location, indent=2))
+
+
 def save_buoy_information():
     '''Save the buoy locations and IDs to a file'''
     data = get_buoy_information()
@@ -112,7 +149,7 @@ if __name__ == '__main__':
         prog='scraper',
         description='helper file for CI and base project purposes',
     )
-    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match', 'diff'], default='match')
+    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match', 'locations', 'diff'], default='match')
     parser.add_argument('-d', '--distance', type=float, default=50.0, help='max distance between city and buoy for validation')
     unit_names = [x.name for x in DistanceUnits]
     parser.add_argument('-u', '--units', type=str, default='MILES', help='distance unit', choices=unit_names)
@@ -122,6 +159,8 @@ if __name__ == '__main__':
         dist = args.distance
         units = [x for x in DistanceUnits if x.name == args.units][0]
         create_city_buoy_lookup(dist, units)
+    elif args.function == 'locations':
+        create_location_lookup()
     elif args.function == 'buoy':
         save_buoy_information()
     elif args.function == 'diff':
