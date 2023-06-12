@@ -7,8 +7,10 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+    # Triggers this work flow on the 12th hour of every day. This doesn't push code to
+    # any repo constantly, it will update the badge though.
+    - cron: 0 12 * * *
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
