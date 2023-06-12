@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+# The file provides utility functions that will be used as the main source of 
+# information from the nautical package. The functions below can be linked to
+# the intents created for this alexa skill.
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from email.policy import default
