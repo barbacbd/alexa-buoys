@@ -7,6 +7,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from email.policy import default
 from json import loads
+from statistics import mean
 from os import getcwd
 from os.path  import join, realpath, dirname
 import requests
@@ -17,6 +18,12 @@ from nautical.units import DistanceUnits
 
 
 __location__ = realpath(join(getcwd(), dirname(__file__)))
+
+__search_data = {
+    "wvht": ["average wave height", "feet"],
+    "apd": ["average period", "seconds"],
+    "wtmp": ["average water temperature", "degrees"]
+}
 
 
 def describe_buoy(buoy_id):
@@ -30,11 +37,8 @@ def describe_buoy(buoy_id):
     if buoy is None:
         return {}
  
-    return {
-		"wvht": buoy.data.wvht,
-         "apd": buoy.data.apd,
-         "wtmp": buoy.data.wtmp
-	}
+    return {key: getattr(buoy.data, key) for key in __search_data}
+
 
 def _find_buoys_in_dist(loc, buoy, dist, units):
     '''Find the distance between the location and buoy'''
@@ -126,7 +130,7 @@ def _find_me():
     ipaddr = response["ip"]
     response = requests.get(f'https://ipapi.co/{ipaddr}/json/').json()
     return response
-
+    
 
 def describe_buoys_near_city(city, state):
     '''Describe the buoy information for a city,state. This can include
@@ -139,13 +143,12 @@ def describe_buoys_near_city(city, state):
     '''
     buoys = get_buoys_near_location(city, state)
     return _parse_described(buoys)
- 
 
-def describe_my_buoy_data():
-    '''Describe the buoy(s) that closest to me
+
+def get_buoys_near_me():
+    '''Get the buoy(s) that are closest to me
     
-    :return: A dictionary of listed values converted from the descibe_buoy function.
-    The data should be used to find the max, min, average of the list
+    :return: List of buoys that were found
     '''
     response = _find_me()
     
@@ -154,11 +157,38 @@ def describe_my_buoy_data():
         buoys = get_buoys_near_coordinates(response['latitude'], response['longitude'])
     elif 'city' in response and 'region' in response:
         buoys = get_buoys_near_location(response['city'], response['region'])
+        
+    return buoys
 
+def describe_my_buoy_data():
+    '''Describe the buoy(s) that are closest to me
+    
+    :return: A dictionary of listed values converted from the descibe_buoy function.
+    The data should be used to find the max, min, average of the list
+    '''
+    buoys = get_buoys_near_me()
     return _parse_described(buoys)
 
 
-print(describe_buoys_near_city("virginia beach", "virginia"))
+def create_buoy_list_output(buoys, location_str):
+    output_location = "you" if location_str == "me" else location_str
+    if not buoys:
+        return f"no buoys found near {output_location}"
+    return f"The following buoys were found near {output_location}, {', '.join(buoys)}"
+
+
+def create_long_output(buoy_var_data):
+    output = []
+    for key, value in __search_data.items():
+        if key in buoy_var_data:
+            average_data =  round(mean([float(x) for x in buoy_var_data[key]]), 2)
+            output.append(f"the {value[0]} is {average_data} {value[1]}")
+
+    if not output:
+        return "not valid buoy data found"
+    return ", ".join(output)
+
+
 
 #print(get_buoys_near_location("virginia beach", "virginia"))
 #print(get_buoys_near_coordinates(36.7335, -76.0435))

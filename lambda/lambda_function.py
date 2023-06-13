@@ -13,6 +13,8 @@ from ask_sdk_core.dispatch_components import AbstractExceptionHandler
 from ask_sdk_core.handler_input import HandlerInput
 
 from ask_sdk_model import Response
+from nautical.io import create_buoy
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -27,28 +29,50 @@ class LaunchRequestHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Welcome, you can ask for information about buoys or say Help. Which would you like to try?"
-        logger.info(f"Handling Launch: {speak_output}")
+        speak_output = "Welcome to nautical data, you can ask for information about buoys or say Help. Which would you like to try?"
+        reprompt = "I did not understand that request. Would you like information about buoys?"
+        logger.info("Handling Launch")
 
         return (
             handler_input.response_builder
                 .speak(speak_output)
-                .ask(speak_output)
+                .ask(reprompt)
                 .response
         )
 
 
-class BuoyInformationIntentHandler(AbstractRequestHandler):
-    """Handler for the buoy information intent."""
+class BuoyIntentHandler(AbstractRequestHandler):
+    """Handler to provide information about a specific buoy.
+    """
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
-        return ask_utils.is_intent_name("BuoyInformationIntent")(handler_input)
+        return ask_utils.is_intent_name("Buoy")(handler_input)
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Hello World!"
-        logger.info(f"Handling Buoy Information: {handler_input}")
-
+        
+        _search_data = {
+            "wvht": ["wave height", "feet"],
+            "apd": ["period", "seconds"],
+            "wtmp": ["water temperature", "degrees"]
+        }
+        
+        buoy_id = handler_input.request_envelope.request.intent.slots["buoy_id"].value
+        
+        # Create a buoy object from the lookup
+        buoy = create_buoy(buoy_id)
+        
+        if buoy is not None:
+            pulled_data = {key: getattr(buoy.data, key) for key in _search_data}
+            # remove all null values
+            pulled_data = {key: value for key, value in pulled_data.items() if value}
+            if pulled_data:
+                speak_output = ", ".join([f"{_search_data[key][0]} is {value} {_search_data[key][1]}" for key, value in pulled_data.items()])
+            else:
+                speak_output = f"I was not able to find data for {buoy_id}"
+        else:
+            speak_output = f"I was not able to find data for {buoy_id}"
+        
         return (
             handler_input.response_builder
                 .speak(speak_output)
@@ -65,10 +89,10 @@ class HelpIntentHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "You may ask to describe a specific buoy, " \
+        speak_output = "You may ask for the report for a specific buoy," \
             "list buoy data near city and state, " \
                 "or list my buoy data."
-        logger.info(f"Handling help: {speak_output}")
+        logger.info("Handling help")
 
         return (
             handler_input.response_builder
@@ -163,7 +187,7 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
 sb = SkillBuilder()
 
 sb.add_request_handler(LaunchRequestHandler())
-sb.add_request_handler(BuoyInformationIntentHandler())
+sb.add_request_handler(BuoyIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())

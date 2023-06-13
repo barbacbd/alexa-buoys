@@ -1,4 +1,44 @@
 # Alexa Buoy Skill
-An Alexa Skill to retrieve buoy information.
 
 ![badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/barbacbd/7e85f87f1f599809fd45d9ef75e9ef42/raw/DynamicBuoyBadgeData.json)
+
+An Alexa Skill to retrieve buoy information. The skill is built around the base library [nautical](https://github.com/barbacbd/nautical). 
+
+# Using the skill
+
+The user will open the skill on the alexa by stating:
+
+"nautical data"
+<br>
+
+After the skill has been opened the user can ask about a specific buoy with:
+
+"list buoy report for {buoy_id}" 
+<br>
+
+If the data is found, alexa will read the [returned data](#data-provided) back to the user.
+
+<br>
+<h1 align="center">
+  <a href="https://github.com/barbacbd/nautical">
+    <img src="https://raw.githubusercontent.com/barbacbd/alexa-buoys/main/.images/model.jpg" width="512" height="256" >
+  </a>
+</h1>
+
+
+# Skill Uses
+
+The following is a list of examples where the skill may be useful:
+
+- Surfing
+- Fishing
+- Beach Days
+- Research
+
+# Data Provided
+
+The current information that can be provided from a buoy is concise.
+
+- Wave Height
+- Period
+- Water Temperature
