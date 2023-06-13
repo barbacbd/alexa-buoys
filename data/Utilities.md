@@ -30,3 +30,11 @@ The buoy function is used to create a json file that contains all buoy_ids linke
 # Diff
 
 The diff tool is used in CI. The utility will determine what changes have been made to the list of buoys online vs the saved buoy information found in the `buoy` function above. 
+
+# Track Buoys
+
+The tool is used to provide the number of active buoys that are being tracked. This is the number of available buoys that users can search for.
+
+# Track Cities
+
+The tool is used to provide the number of cities that have buoys within a specified range. This is the number of available locations that users can search for.

@@ -149,7 +149,7 @@ if __name__ == '__main__':
         prog='scraper',
         description='helper file for CI and base project purposes',
     )
-    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match', 'locations', 'diff'], default='match')
+    parser.add_argument('-f', '--function', type=str, choices=['buoy', 'match', 'locations', 'diff', 'track_buoys', 'track_cities'], default='match')
     parser.add_argument('-d', '--distance', type=float, default=50.0, help='max distance between city and buoy for validation')
     unit_names = [x.name for x in DistanceUnits]
     parser.add_argument('-u', '--units', type=str, default='MILES', help='distance unit', choices=unit_names)
@@ -177,3 +177,11 @@ if __name__ == '__main__':
 
         message = "No Updates" if total_diff == 0 else "Changes Detected"
         print(dumps({"diff": total_diff, "message": message}))
+    elif args.function == 'track_buoys':
+        with open(join(__location__, "buoy_locations.json"), "r") as jsonfile:
+            original_buoy_data = loads(jsonfile.read())
+        print(dumps({"buoys": len(original_buoy_data)}))
+    elif args.function == 'track_cities':
+        with open(join(__location__, "id_locations.json"), "r") as jsonfile:
+            city_data = loads(jsonfile.read())
+        print(dumps({"cities": len(city_data)}))

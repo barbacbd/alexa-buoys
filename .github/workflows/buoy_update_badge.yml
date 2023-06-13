@@ -37,13 +37,13 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Get the number of changes
-        id: scraper_step
+        id: scraper_step_diff
         run: |
           output=$(python data/scraper.py -f diff)
           diff=$(jq '.diff' <<<"${output}")
           echo "DIFF=${diff}" >> $GITHUB_ENV
 
-      - name: Create Dynamic Badge
+      - name: Create Number of Buoy Updates Badge
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.Custom_Badge }}
@@ -52,3 +52,39 @@ jobs:
           label: Buoy Updates
           message: ${{ env.DIFF }}
           color: blue
+      
+      # Runs a set of commands using the runners shell
+      - name: Get the number of buoys tracked
+        id: scraper_step_buoys
+        run: |
+          output=$(python data/scraper.py -f track_buoys)
+          num=$(jq '.buoys' <<<"${output}")
+          echo "BUOYS=${num}" >> $GITHUB_ENV
+
+      - name: Create Number of Buoys Tracked Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.Custom_Badge }}
+          gistID: 13b743bab03c7a43a72994b1512a112e
+          filename: AvailableBuoys.json
+          label: Available Buoys
+          message: ${{ env.BUOYS }}
+          color: green
+
+      # Runs a set of commands using the runners shell
+      - name: Get the number of cities tracked
+        id: scraper_step_cities
+        run: |
+          output=$(python data/scraper.py -f track_cities)
+          num=$(jq '.cities' <<<"${output}")
+          echo "CITIES=${num}" >> $GITHUB_ENV
+
+      - name: Create Number of Cities Tracked Badge
+        uses: schneegans/dynamic-badges-action@v1.6.0
+        with:
+          auth: ${{ secrets.Custom_Badge }}
+          gistID: 09fbedcdba4bab564596abfdd22d35e2
+          filename: AvailableCities.json
+          label: Available Locations
+          message: ${{ env.CITIES }}
+          color: green

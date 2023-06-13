@@ -4,11 +4,11 @@ This docuement is intended to be a placeholder for work currently under developm
 
 # Table of Contents
 
+  * [Future Intents](./Intents.md#intents)
   * [Persistent Data Storage](#persistent-data-storage)
       * [Challenges](#challenges)
   * [Accurate Device Locations](#accurate-device-locations)
   * [Specific Variables](#specific-variables)
-  * [Future Intents](./Intents.md#intents)
   * [Keep Running](#keep-running)
 
 # Persistent Data Storage
