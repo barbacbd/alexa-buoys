@@ -20,8 +20,8 @@ If the data is found, alexa will read the [returned data](#data-provided) back t
 
 <br>
 <h1 align="center">
-  <a href="https://github.com/barbacbd/nautical">
-    <img src="https://raw.githubusercontent.com/barbacbd/alexa-buoys/main/.images/model.jpg" width="512" height="256" >
+  <a>
+    <img src="https://github.com/barbacbd/alexa-buoys/blob/53009b2a9cd8e0f6b0b635ed465452e6d90aadad/.images/model.jpeg" width="512" height="128" >
   </a>
 </h1>
 
