@@ -14,7 +14,7 @@ The user will open the skill on the alexa by stating:
 
 After the skill has been opened the user can ask about a specific buoy with:
 
-"list buoy report for {buoy_id}" 
+"{buoy_id} report" 
 <br>
 
 If the data is found, alexa will read the [returned data](#data-provided) back to the user.
@@ -26,6 +26,7 @@ If the data is found, alexa will read the [returned data](#data-provided) back t
   </a>
 </h1>
 
+For more information about intents view the following [page](./Intents.md).
 
 # Skill Uses
 
