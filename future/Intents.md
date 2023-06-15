@@ -4,10 +4,18 @@ The docuement is intended to track intents and the requirements for each if they
 
 # Table of Contents
 
+  * [General](#general)
   * [List of My Buoys](#list-of-my-buoys)
   * [List My Buoy Data](#list-my-buoy-data)
   * [Slots](#slot-types)
   * [Common Functions](#utility-functions)
+
+# General
+
+For a list of intents look [here](https://developer.amazon.com/en-US/docs/alexa/custom-skills/standard-built-in-intents.html#available-standard-built-in-intents) for more information.
+
+- Add in a selection intent to query for specific information about a buoy from the list provided from a location.
+
 
 # List of My Buoys
 
