@@ -12,7 +12,7 @@ The user will open the skill on the alexa by stating:
 "nautical data"
 <br>
 
-After the skill has been opened the user can ask about a specific buoy with:
+After the skill has been opened the user can ask or state any of the uterrances found [here](./Intents.md). For example:
 
 "{buoy_id} report" 
 <br>

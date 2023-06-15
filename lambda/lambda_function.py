@@ -13,11 +13,33 @@ from ask_sdk_core.dispatch_components import AbstractExceptionHandler
 from ask_sdk_core.handler_input import HandlerInput
 
 from ask_sdk_model import Response
+
+import os
+from statistics import mean
+from collections import defaultdict
+from locations import Location_Breakdown
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from nautical.io import create_buoy
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# basic search criteria and reported data.
+_search_data = {
+    "wvht": ["wave height", "feet"],
+    "apd": ["period", "seconds"],
+    "wtmp": ["water temperature", "degrees"]
+}
+
+def _create_buoy(buoy_id):
+    buoy = create_buoy(buoy_id)
+    
+    pulled_data = {}
+    if buoy is not None:
+        pulled_data = {key: getattr(buoy.data, key) for key in _search_data if getattr(buoy.data, key) is not None}
+    
+    return pulled_data
 
 
 class LaunchRequestHandler(AbstractRequestHandler):
@@ -49,30 +71,83 @@ class BuoyIntentHandler(AbstractRequestHandler):
         return ask_utils.is_intent_name("Buoy")(handler_input)
 
     def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        
-        _search_data = {
-            "wvht": ["wave height", "feet"],
-            "apd": ["period", "seconds"],
-            "wtmp": ["water temperature", "degrees"]
-        }
-        
         buoy_id = handler_input.request_envelope.request.intent.slots["buoy_id"].value
         
-        # Create a buoy object from the lookup
-        buoy = create_buoy(buoy_id)
-        
-        if buoy is not None:
-            pulled_data = {key: getattr(buoy.data, key) for key in _search_data}
-            # remove all null values
-            pulled_data = {key: value for key, value in pulled_data.items() if value}
-            if pulled_data:
-                speak_output = ", ".join([f"{_search_data[key][0]} is {value} {_search_data[key][1]}" for key, value in pulled_data.items()])
-            else:
-                speak_output = f"I was not able to find data for {buoy_id}"
+        pulled_data = _create_buoy(buoy_id)
+        if pulled_data:
+            speak_output = ", ".join([f"{_search_data[key][0]} is {value} {_search_data[key][1]}" for key, value in pulled_data.items()])
         else:
             speak_output = f"I was not able to find data for {buoy_id}"
         
+        return (
+            handler_input.response_builder
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
+        )
+
+
+class BuoysNearLocationIntentHandler(AbstractRequestHandler):
+    """Handler to provide buoys that can be found close to a
+    specific city/state location.
+    """
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return ask_utils.is_intent_name("BuoysNearLocation")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        city = handler_input.request_envelope.request.intent.slots["near_city"].value
+        state = handler_input.request_envelope.request.intent.slots["near_state"].value
+        
+        try:
+            buoys = Location_Breakdown[state.lower()][city.lower()]["names"]
+            buoy_str = ", ".join(buoys)
+            speak_output = f"I found the following buoys. {buoy_str}"
+        except KeyError as e:
+            speak_output = f"I could not find buoys in {city} {state}"
+
+        return (
+            handler_input.response_builder
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
+        )
+
+
+class DataNearLocationIntentHandler(AbstractRequestHandler):
+    """Handler to provide information about buoys that can be found close to a
+    specific city/state location.
+    """
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return ask_utils.is_intent_name("DataNearLocation")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        city = handler_input.request_envelope.request.intent.slots["near_city"].value
+        state = handler_input.request_envelope.request.intent.slots["near_state"].value
+
+        speak_output = ""
+        
+        try:
+            buoys = Location_Breakdown[state.lower()][city.lower()]["buoys"]
+            averages = defaultdict(list)
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                find_buoy_data = {executor.submit(_create_buoy, buoy_id): 
+                    buoy_id for buoy_id in buoys}
+                
+                for futr in as_completed(find_buoy_data):
+                    for key, value in futr.result().items():
+                        averages[key].append(float(value))
+                if averages:
+                    speak_output = ", ".join([f"the average {_search_data[key][0]} is {round(mean(value), 2)} {_search_data[key][1]}" for key, value in averages.items()])
+        except KeyError as e:
+            speak_output = f"I could not find buoys in {city} {state}"
+            
+        if not speak_output:
+            speak_output = f"I was unable to retrieve data for {city} {state}"
+
         return (
             handler_input.response_builder
                 .speak(speak_output)
@@ -183,11 +258,12 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
 # payloads to the handlers above. Make sure any new handlers or interceptors you've
 # defined are included below. The order matters - they're processed top to bottom.
 
-
 sb = SkillBuilder()
 
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(BuoyIntentHandler())
+sb.add_request_handler(BuoysNearLocationIntentHandler())
+sb.add_request_handler(DataNearLocationIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())

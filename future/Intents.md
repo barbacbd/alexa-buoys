@@ -6,8 +6,6 @@ The docuement is intended to track intents and the requirements for each if they
 
   * [List of My Buoys](#list-of-my-buoys)
   * [List My Buoy Data](#list-my-buoy-data)
-  * [Buoys Near Location](#buoys-near-location)
-  * [Data Near Location](#data-near-location)
   * [Slots](#slot-types)
   * [Common Functions](#utility-functions)
 
@@ -177,107 +175,6 @@ class MyBuoyDataIntentHandler(AbstractRequestHandler):
 ```
 
 **Note**: _Don't forget to add the new handler to the Skill Builder object._
-
-
-# Buoys Near Location
-
-The intent is intended to provide users with buoy ids near a city/state combination. 
-
-## Invocations
-
-- buoys close to {near_city} {near_state}
-- buoys near {near_city} {near_state}
-- what buoys are near {near_city} {near_state}
-- what buoys are close to {near_city} {near_state}
-- can you list the buoys near {near_city} {near_state}
-- list the buoys near {near_city} {near_state}
-
-## Handler
-
-```python
-class BuoysNearLocationIntentHandler(AbstractRequestHandler):
-    """Handler to provide buoys that can be found close to a
-    specific city/state location.
-    """
-    def can_handle(self, handler_input):
-        # type: (HandlerInput) -> bool
-        return ask_utils.is_intent_name("BuoysNearLocation")(handler_input)
-
-    def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        city = handler_input.request_envelope.request.intent.slots["near_city"].value
-        state = handler_input.request_envelope.request.intent.slots["near_state"].value
-        
-        # Use the same logic to get buoys from a specific location as above
-        
-        return (
-            handler_input.response_builder
-                .speak(speak_output)
-                # .ask("add a reprompt if you want to keep the session open for the user to respond")
-                .response
-        )
-```
-
-**Note**: _Don't forget to add the new handler to the Skill Builder object._
-
-
-# Data Near Location
-
-The intent is intended to provide users with buoy data near a city/state combination. 
-
-## Invocations
-
-- report for {near_city} {near_state}
-- can you provide a report for {near_city} {near_state}
-- what is the report near {near_city} {near_state}
-- what is the report for {near_city} {near_state}
-- can you provide a report near {near_city} {near_state}
-- report near {near_city} {near_state}
-
-## Handler
-
-```python
-class DataNearLocationIntentHandler(AbstractRequestHandler):
-    """Handler to provide information about buoys that can be found close to a
-    specific city/state location.
-    """
-    def can_handle(self, handler_input):
-        # type: (HandlerInput) -> bool
-        return ask_utils.is_intent_name("DataNearLocation")(handler_input)
-
-    def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        city = handler_input.request_envelope.request.intent.slots["near_city"].value
-        state = handler_input.request_envelope.request.intent.slots["near_state"].value
-        
-        # Use the same logic to describe buoys from a specific location as above
-
-        return (
-            handler_input.response_builder
-                .speak(speak_output)
-                # .ask("add a reprompt if you want to keep the session open for the user to respond")
-                .response
-        )
-```
-
-**Note**: _Don't forget to add the new handler to the Skill Builder object._
-
-
-# Slot Types
-
-The following slot types will be used for two of the intents above. 
-
-## AMAZON.City
-
-This is technically a built in type but the data should include all cities from the scripts in the [data directory](https://github.com/barbacbd/alexa-buoys/tree/main/data). 
-
-- name: near_city
-
-## AMAZON.US_STATE
-
-This is technically a built in type but the data should include all states from the scripts in the [data directory](https://github.com/barbacbd/alexa-buoys/tree/main/data). 
-
-- name: near_state
 
 
 # Utility Functions
