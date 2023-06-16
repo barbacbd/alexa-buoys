@@ -38,18 +38,11 @@ from ask_sdk_core.dispatch_components import AbstractExceptionHandler
 from ask_sdk_core.handler_input import HandlerInput
 from ask_sdk_model import Response
 from nautical.io import create_buoy
+from buoy_lookup import BaseVariables, TotalBuoyVariables, find_buoy_variable
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-# The base variable is a map of the expected nautical.Buoy object
-# variable to the actual name and the
-BaseVariables = {
-    "wvht": ["wave height", "feet"],
-    "apd": ["period", "seconds"],
-    "wtmp": ["water temperature", "degrees"]
-}
 
 
 def create_buoy_wrapper(buoy_id, variable_dict=None):
@@ -67,7 +60,7 @@ def create_buoy_wrapper(buoy_id, variable_dict=None):
     
     pulled_data = {}
     if buoy is not None:
-        pulled_data = {key: getattr(buoy.data, key) for key in BaseVariables if getattr(buoy.data, key) is not None}
+        pulled_data = {key: getattr(buoy.data, key) for key in variable_dict if getattr(buoy.data, key) is not None}
     
     return pulled_data
 
@@ -185,6 +178,57 @@ class DataNearLocationIntentHandler(AbstractRequestHandler):
                 .speak(speak_output)
                 # .ask("add a reprompt if you want to keep the session open for the user to respond")
                 .response
+        )
+
+
+class SpecificBuoyDataIntentHandler(AbstractRequestHandler):
+    """Handler to provide a single value (if the buoy records that variable).
+    """
+
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return ask_utils.is_intent_name("SpecificDataAtBuoy")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        buoy_var = handler_input.request_envelope.request.intent.slots["buoy_var"].value
+        buoy_id = handler_input.request_envelope.request.intent.slots["buoy_id"].value
+
+        speak_output = ""
+
+        short_var = find_buoy_variable(buoy_var)
+        if short_var is not None:
+            if short_var in TotalBuoyVariables:
+                lookup = {short_var: TotalBuoyVariables[short_var]}
+                pulled_data = create_buoy_wrapper(buoy_id, lookup)
+                if pulled_data:
+                    speak_output = ", ".join(
+                        [f"{lookup[key][0]} is {value} {lookup[key][1]}"
+                         for key, value in pulled_data.items()]
+                    )
+
+        if not speak_output:
+            speak_output = f"I was not able to find {buoy_var} for {buoy_id}"
+
+        return (
+            handler_input.response_builder
+            .speak(speak_output)
+            # .ask("add a reprompt if you want to keep the session open for the user to respond")
+            .response
+        )
+
+        try:
+            buoys = Location_Breakdown[state.lower()][city.lower()]["names"]
+            buoy_str = ", ".join(buoys)
+            speak_output = f"I found the following buoys. {buoy_str}"
+        except KeyError as e:
+            speak_output = f"I could not find buoys in {city} {state}"
+
+        return (
+            handler_input.response_builder
+            .speak(speak_output)
+            # .ask("add a reprompt if you want to keep the session open for the user to respond")
+            .response
         )
 
 
