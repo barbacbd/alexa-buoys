@@ -1,43 +1,73 @@
 # -*- coding: utf-8 -*-
+"""alexa-buoys License
 
-# This sample demonstrates handling intents from an Alexa skill using the Alexa Skills Kit SDK for Python.
-# Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
-# session persistence, api calls, and more.
-# This sample is built using the handler classes approach in skill builder.
+Copyright (c) 2023 Brent Barbachem
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Alexa Skill: nautical data
+
+The skill will use the nautical library to retrieve information about
+noaa buoys.
+"""
 import logging
-import ask_sdk_core.utils as ask_utils
-
-from ask_sdk_core.skill_builder import SkillBuilder
-from ask_sdk_core.dispatch_components import AbstractRequestHandler
-from ask_sdk_core.dispatch_components import AbstractExceptionHandler
-from ask_sdk_core.handler_input import HandlerInput
-
-from ask_sdk_model import Response
-
-import os
 from statistics import mean
 from collections import defaultdict
 from locations import Location_Breakdown
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import ask_sdk_core.utils as ask_utils
+from ask_sdk_core.skill_builder import SkillBuilder
+from ask_sdk_core.dispatch_components import AbstractRequestHandler
+from ask_sdk_core.dispatch_components import AbstractExceptionHandler
+from ask_sdk_core.handler_input import HandlerInput
+from ask_sdk_model import Response
 from nautical.io import create_buoy
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# basic search criteria and reported data.
-_search_data = {
+# The base variable is a map of the expected nautical.Buoy object
+# variable to the actual name and the
+BaseVariables = {
     "wvht": ["wave height", "feet"],
     "apd": ["period", "seconds"],
     "wtmp": ["water temperature", "degrees"]
 }
 
-def _create_buoy(buoy_id):
+
+def create_buoy_wrapper(buoy_id, variable_dict=None):
+    """Create buoy wrapper (nautical.io.create_buoy) to retrieve all data
+    from the buoy. Only variables in the variable dictionary are retrieved.
+
+    :param buoy_id: ID or name of the buoy (station)
+    :param variable_dict: dictionary where the keys control what variables are returned
+
+    :return: dictionary of data retrieved from the buoy (if existed)
+    """
+    if variable_dict is None:
+        variable_dict = BaseVariables
     buoy = create_buoy(buoy_id)
     
     pulled_data = {}
     if buoy is not None:
-        pulled_data = {key: getattr(buoy.data, key) for key in _search_data if getattr(buoy.data, key) is not None}
+        pulled_data = {key: getattr(buoy.data, key) for key in BaseVariables if getattr(buoy.data, key) is not None}
     
     return pulled_data
 
@@ -51,16 +81,12 @@ class LaunchRequestHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Welcome to nautical data, you can ask for information about buoys or say Help. Which would you like to try?"
+        speak_output = "Welcome to nautical data, you can ask for information about buoys or say Help. " \
+                       "Which would you like to try?"
         reprompt = "I did not understand that request. Would you like information about buoys?"
         logger.info("Handling Launch")
 
-        return (
-            handler_input.response_builder
-                .speak(speak_output)
-                .ask(reprompt)
-                .response
-        )
+        return handler_input.response_builder.speak(speak_output).ask(reprompt).response
 
 
 class BuoyIntentHandler(AbstractRequestHandler):
@@ -73,9 +99,12 @@ class BuoyIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         buoy_id = handler_input.request_envelope.request.intent.slots["buoy_id"].value
         
-        pulled_data = _create_buoy(buoy_id)
+        pulled_data = create_buoy_wrapper(buoy_id)
         if pulled_data:
-            speak_output = ", ".join([f"{_search_data[key][0]} is {value} {_search_data[key][1]}" for key, value in pulled_data.items()])
+            speak_output = ", ".join(
+                [f"{BaseVariables[key][0]} is {value} {BaseVariables[key][1]}"
+                 for key, value in pulled_data.items()]
+            )
         else:
             speak_output = f"I was not able to find data for {buoy_id}"
         
@@ -134,14 +163,17 @@ class DataNearLocationIntentHandler(AbstractRequestHandler):
             buoys = Location_Breakdown[state.lower()][city.lower()]["buoys"]
             averages = defaultdict(list)
             with ThreadPoolExecutor(max_workers=10) as executor:
-                find_buoy_data = {executor.submit(_create_buoy, buoy_id): 
+                find_buoy_data = {executor.submit(create_buoy_wrapper, buoy_id, BaseVariables): 
                     buoy_id for buoy_id in buoys}
                 
                 for futr in as_completed(find_buoy_data):
                     for key, value in futr.result().items():
                         averages[key].append(float(value))
                 if averages:
-                    speak_output = ", ".join([f"the average {_search_data[key][0]} is {round(mean(value), 2)} {_search_data[key][1]}" for key, value in averages.items()])
+                    speak_output = ", ".join(
+                        [f"the average {BaseVariables[key][0]} is {round(mean(value), 2)} {BaseVariables[key][1]}"
+                         for key, value in averages.items()]
+                    )
         except KeyError as e:
             speak_output = f"I could not find buoys in {city} {state}"
             
@@ -254,12 +286,11 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
                 .response
         )
 
+
 # The SkillBuilder object acts as the entry point for your skill, routing all request and response
 # payloads to the handlers above. Make sure any new handlers or interceptors you've
 # defined are included below. The order matters - they're processed top to bottom.
-
 sb = SkillBuilder()
-
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(BuoyIntentHandler())
 sb.add_request_handler(BuoysNearLocationIntentHandler())
@@ -267,7 +298,8 @@ sb.add_request_handler(DataNearLocationIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
-sb.add_request_handler(IntentReflectorHandler()) # make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+# make sure IntentReflectorHandler is last so it doesn't override your custom intent handlers
+sb.add_request_handler(IntentReflectorHandler())
 
 sb.add_exception_handler(CatchAllExceptionHandler())
 
