@@ -40,6 +40,7 @@ from ask_sdk_model import Response
 from nautical.io import create_buoy
 from buoy_lookup import BaseVariables, TotalBuoyVariables, find_buoy_variable
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -56,17 +57,16 @@ def create_buoy_wrapper(buoy_id, variable_dict=None):
     if variable_dict is None:
         variable_dict = BaseVariables
     buoy = create_buoy(buoy_id)
-
+    
     pulled_data = {}
     if buoy is not None:
         pulled_data = {key: getattr(buoy.data, key) for key in variable_dict if getattr(buoy.data, key) is not None}
-
+    
     return pulled_data
 
 
 class LaunchRequestHandler(AbstractRequestHandler):
     """Handler for Skill Launch."""
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
 
@@ -85,14 +85,13 @@ class LaunchRequestHandler(AbstractRequestHandler):
 class BuoyIntentHandler(AbstractRequestHandler):
     """Handler to provide information about a specific buoy.
     """
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_intent_name("Buoy")(handler_input)
 
     def handle(self, handler_input):
         buoy_id = handler_input.request_envelope.request.intent.slots["buoy_id"].value
-
+        
         pulled_data = create_buoy_wrapper(buoy_id)
         if pulled_data:
             speak_output = ", ".join(
@@ -101,12 +100,12 @@ class BuoyIntentHandler(AbstractRequestHandler):
             )
         else:
             speak_output = f"I was not able to find data for {buoy_id}"
-
+        
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            # .ask("add a reprompt if you want to keep the session open for the user to respond")
-            .response
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
         )
 
 
@@ -114,7 +113,6 @@ class BuoysNearLocationIntentHandler(AbstractRequestHandler):
     """Handler to provide buoys that can be found close to a
     specific city/state location.
     """
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_intent_name("BuoysNearLocation")(handler_input)
@@ -123,7 +121,7 @@ class BuoysNearLocationIntentHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         city = handler_input.request_envelope.request.intent.slots["near_city"].value
         state = handler_input.request_envelope.request.intent.slots["near_state"].value
-
+        
         try:
             buoys = Location_Breakdown[state.lower()][city.lower()]["names"]
             buoy_str = ", ".join(buoys)
@@ -133,9 +131,9 @@ class BuoysNearLocationIntentHandler(AbstractRequestHandler):
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            # .ask("add a reprompt if you want to keep the session open for the user to respond")
-            .response
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
         )
 
 
@@ -143,7 +141,6 @@ class DataNearLocationIntentHandler(AbstractRequestHandler):
     """Handler to provide information about buoys that can be found close to a
     specific city/state location.
     """
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_intent_name("DataNearLocation")(handler_input)
@@ -154,14 +151,14 @@ class DataNearLocationIntentHandler(AbstractRequestHandler):
         state = handler_input.request_envelope.request.intent.slots["near_state"].value
 
         speak_output = ""
-
+        
         try:
             buoys = Location_Breakdown[state.lower()][city.lower()]["buoys"]
             averages = defaultdict(list)
             with ThreadPoolExecutor(max_workers=10) as executor:
-                find_buoy_data = {executor.submit(create_buoy_wrapper, buoy_id, BaseVariables):
-                                      buoy_id for buoy_id in buoys}
-
+                find_buoy_data = {executor.submit(create_buoy_wrapper, buoy_id, BaseVariables): 
+                    buoy_id for buoy_id in buoys}
+                
                 for futr in as_completed(find_buoy_data):
                     for key, value in futr.result().items():
                         averages[key].append(float(value))
@@ -172,15 +169,15 @@ class DataNearLocationIntentHandler(AbstractRequestHandler):
                     )
         except KeyError as e:
             speak_output = f"I could not find buoys in {city} {state}"
-
+            
         if not speak_output:
             speak_output = f"I was unable to retrieve data for {city} {state}"
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            # .ask("add a reprompt if you want to keep the session open for the user to respond")
-            .response
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
         )
 
 
@@ -237,7 +234,6 @@ class SpecificBuoyDataIntentHandler(AbstractRequestHandler):
 
 class HelpIntentHandler(AbstractRequestHandler):
     """Handler for Help Intent."""
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_intent_name("AMAZON.HelpIntent")(handler_input)
@@ -245,21 +241,20 @@ class HelpIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         speak_output = "You may ask for the report for a specific buoy," \
-                       "list buoy data near city and state, " \
-                       "or list my buoy data."
+            "list buoy data near city and state, " \
+                "or list my buoy data."
         logger.info("Handling help")
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            .ask(speak_output)
-            .response
+                .speak(speak_output)
+                .ask(speak_output)
+                .response
         )
 
 
 class CancelOrStopIntentHandler(AbstractRequestHandler):
     """Single handler for Cancel and Stop Intent."""
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return (ask_utils.is_intent_name("AMAZON.CancelIntent")(handler_input) or
@@ -271,14 +266,13 @@ class CancelOrStopIntentHandler(AbstractRequestHandler):
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            .response
+                .speak(speak_output)
+                .response
         )
 
 
 class SessionEndedRequestHandler(AbstractRequestHandler):
     """Handler for Session End."""
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_request_type("SessionEndedRequest")(handler_input)
@@ -297,7 +291,6 @@ class IntentReflectorHandler(AbstractRequestHandler):
     for your intents by defining them above, then also adding them to the request
     handler chain below.
     """
-
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return ask_utils.is_request_type("IntentRequest")(handler_input)
@@ -309,9 +302,9 @@ class IntentReflectorHandler(AbstractRequestHandler):
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            # .ask("add a reprompt if you want to keep the session open for the user to respond")
-            .response
+                .speak(speak_output)
+                # .ask("add a reprompt if you want to keep the session open for the user to respond")
+                .response
         )
 
 
@@ -320,7 +313,6 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
     stating the request handler chain is not found, you have not implemented a handler for
     the intent being invoked or included it in the skill builder below.
     """
-
     def can_handle(self, handler_input, exception):
         # type: (HandlerInput, Exception) -> bool
         return True
@@ -333,9 +325,9 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
 
         return (
             handler_input.response_builder
-            .speak(speak_output)
-            .ask(speak_output)
-            .response
+                .speak(speak_output)
+                .ask(speak_output)
+                .response
         )
 
 

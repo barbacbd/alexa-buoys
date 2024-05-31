@@ -1,0 +1,99 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "summary": "Nautical provides users with data about NOAA buoys.",
+          "examplePhrases": [
+            "Alexa nautical data"
+          ],
+          "keywords": [
+            "nautical",
+            "buoys",
+            "NOAA",
+            "waves",
+            "swell",
+            "wave",
+            "height",
+            "water",
+            "temperature",
+            "ocean"
+          ],
+          "name": "Buoy Information",
+          "description": "The purpose of nautical data is to provide users with a quick and easy medium for obtaining data about NOAA buoys. Available data for buoys consists of wave height, period and water temperature. After opening nautical data, users can obtain information by stating \"buoy report for buoy id\" where the buoy id is the name or identifier for a NOAA buoy. The supported buoys come from buoy sources NDBC and IOOS Partners.",
+          "smallIconUri": "file://assets/images/en-US_smallIconUri.png",
+          "updatesDescription": "Users can now receive a list of buoys close to a city/state combination. Users can also receive the buoy information close to a city/state combination. There may be multiple buoys returned from either of the two new intents. In the case of retrieving buoy data near a location, the values will be averaged across all buoys found.\n\nUsers can now ask for a specific variable at a specific buoy. If the value exists then it will be reported to the user.",
+          "largeIconUri": "file://assets/images/en-US_largeIconUri.png"
+        }
+      },
+      "automaticDistribution": {
+        "isActive": false
+      },
+      "isAvailableWorldwide": false,
+      "testingInstructions": "{\"ask_dist_username\":\"\",\"ask_dist_password\":\"\",\"ask_dist_testing_instructions\":\"{\\\"ask_dist_username\\\":\\\"\\\",\\\"ask_dist_password\\\":\\\"\\\"}\"}",
+      "category": "WEATHER",
+      "distributionMode": "PUBLIC",
+      "distributionCountries": [
+        "US",
+        "PR",
+        "GU",
+        "GB",
+        "VI",
+        "VG",
+        "MX",
+        "AU",
+        "BS",
+        "BB",
+        "BE",
+        "IO",
+        "CA",
+        "KY",
+        "CR",
+        "DK",
+        "DO",
+        "SV",
+        "FR",
+        "HT",
+        "FI",
+        "FJ",
+        "DE",
+        "IE",
+        "JM",
+        "PA",
+        "NI",
+        "PH",
+        "PT",
+        "TC",
+        "TT",
+        "SE"
+      ]
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "arn:aws:lambda:us-east-1:625653319195:function:7298e2e4-b743-43ca-b460-084dac8e7f32:Release_2"
+        },
+        "interfaces": [],
+        "locales": {}
+      }
+    },
+    "permissions": [],
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "locales": {
+        "en-US": {
+          "termsOfUseUrl": "https://github.com/barbacbd/alexa-buoys/blob/main/TermsOfUse.md",
+          "privacyPolicyUrl": "https://github.com/barbacbd/alexa-buoys/blob/main/PrivacyPolicy.md"
+        }
+      },
+      "containsAds": false,
+      "isExportCompliant": true,
+      "isChildDirected": false,
+      "shoppingKit": {
+        "isShoppingActionsEnabled": false,
+        "isAmazonAssociatesOnAlexaEnabled": false
+      },
+      "usesPersonalInfo": false
+    }
+  }
+}
